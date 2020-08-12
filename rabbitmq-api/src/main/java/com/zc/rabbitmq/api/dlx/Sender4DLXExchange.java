@@ -1,12 +1,12 @@
 package com.zc.rabbitmq.api.dlx;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class Sender4DLXExchange {
 
@@ -25,7 +25,7 @@ public class Sender4DLXExchange {
 		Channel channel = connection.createChannel();  
 		//4 声明
 		String exchangeName = "test_dlx_exchange";
-		String routingKey = "group.bfxy";
+		String routingKey = "group.zc";
 		//5 发送
 		
 		Map<String, Object> headers = new HashMap<String, Object>();

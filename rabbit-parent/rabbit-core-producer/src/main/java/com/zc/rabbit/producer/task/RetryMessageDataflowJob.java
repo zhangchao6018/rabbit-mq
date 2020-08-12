@@ -1,23 +1,21 @@
 package com.zc.rabbit.producer.task;
 
-import java.util.List;
-
+import com.dangdang.ddframe.job.api.ShardingContext;
+import com.dangdang.ddframe.job.api.dataflow.DataflowJob;
+import com.zc.rabbit.producer.broker.RabbitBroker;
 import com.zc.rabbit.producer.constant.BrokerMessageStatus;
 import com.zc.rabbit.producer.entity.BrokerMessage;
 import com.zc.rabbit.producer.service.MessageStoreService;
+import com.zc.rabbit.task.annotation.ElasticJobConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.zc.rabbit.producer.broker.RabbitBroker;
-import com.zc.rabbit.task.annotation.ElasticJobConfig;
-import com.dangdang.ddframe.job.api.ShardingContext;
-import com.dangdang.ddframe.job.api.dataflow.DataflowJob;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.List;
 
 @Component
 @ElasticJobConfig(
-		name= "com.bfxy.rabbit.producer.task.RetryMessageDataflowJob",
+		name= "com.zc.rabbit.producer.task.RetryMessageDataflowJob",
 		cron= "0/10 * * * * ?",
 		description = "可靠性投递消息补偿任务",
 		overwrite = true,

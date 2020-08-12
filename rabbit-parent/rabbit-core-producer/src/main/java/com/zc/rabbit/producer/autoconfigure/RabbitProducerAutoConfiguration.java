@@ -11,7 +11,7 @@ import com.zc.rabbit.task.annotation.EnableElasticJob;
  */
 @EnableElasticJob
 @Configuration
-@ComponentScan({"com.bfxy.rabbit.producer.*"})
+@ComponentScan({"com.zc.rabbit.producer.*"})
 public class RabbitProducerAutoConfiguration {
 
 

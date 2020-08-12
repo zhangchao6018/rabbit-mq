@@ -29,7 +29,7 @@ public class RabbitProducerMyBatisConfiguration {
 		ResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 		try {
 			//原代码,由于报错 于是在配置文件添加了mybatis扫描xml配置
-//			bean.setMapperLocations(resolver.getResources("classpath:com/bfxy/rabbit/producer/mapping/*.xml"));
+//			bean.setMapperLocations(resolver.getResources("classpath:com/zc/rabbit/producer/mapping/*.xml"));
 			bean.setMapperLocations(resolver.getResources("classpath:/mapper/*.xml"));
 			SqlSessionFactory sqlSessionFactory = bean.getObject();
 			sqlSessionFactory.getConfiguration().setCacheEnabled(Boolean.TRUE);

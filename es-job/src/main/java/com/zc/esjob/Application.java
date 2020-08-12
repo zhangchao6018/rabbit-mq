@@ -8,7 +8,7 @@ import com.zc.rabbit.task.annotation.EnableElasticJob;
 
 @EnableElasticJob
 @SpringBootApplication
-@ComponentScan(basePackages = {"com.bfxy.esjob.*","com.bfxy.esjob.service.*", "com.bfxy.esjob.annotation.*","com.bfxy.esjob.task.*"})
+@ComponentScan(basePackages = {"com.zc.esjob.*","com.zc.esjob.service.*", "com.zc.esjob.annotation.*","com.zc.esjob.task.*"})
 public class Application {
 
 	public static void main(String[] args) {

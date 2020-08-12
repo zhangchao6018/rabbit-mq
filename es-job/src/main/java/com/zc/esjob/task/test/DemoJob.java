@@ -8,7 +8,7 @@ import com.dangdang.ddframe.job.api.simple.SimpleJob;
 
 @Component
 @ElasticJobConfig(
-			name = "com.bfxy.esjob.task.test.DemoJob",
+			name = "com.zc.esjob.task.test.DemoJob",
 			cron = "0/10 * * * * ?",
 			description = "样例定时任务",
 			overwrite = true,

@@ -6,7 +6,7 @@
 		<version>2.1.5.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>  	
-  	<groupId>com.bfxy.rabbit</groupId>
+  	<groupId>com.zc.rabbit</groupId>
   	<artifactId>rabbit-test</artifactId>
   	<version>0.0.1-SNAPSHOT</version>
   	
@@ -22,7 +22,7 @@
 			<scope>test</scope>
 		</dependency>		 	
 	  	<dependency>
-	  		<groupId>com.bfxy.base.rabbit</groupId>
+	  		<groupId>com.zc.base.rabbit</groupId>
 	  		<artifactId>rabbit-core-producer</artifactId>
 	  		<version>0.0.1-SNAPSHOT</version>
 	  	</dependency>

@@ -14,7 +14,7 @@ public class RabbitProducerMybatisMapperScanerConfig {
     public MapperScannerConfigurer rabbitProducerMapperScannerConfigurer() {
         MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
         mapperScannerConfigurer.setSqlSessionFactoryBeanName("rabbitProducerSqlSessionFactory");
-        mapperScannerConfigurer.setBasePackage("com.bfxy.rabbit.producer.mapper");
+        mapperScannerConfigurer.setBasePackage("com.zc.rabbit.producer.mapper");
         return mapperScannerConfigurer;
     }
 
