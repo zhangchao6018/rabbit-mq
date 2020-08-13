@@ -220,7 +220,7 @@ public class ApplicationTests {
 			Message message = new Message(body, messageProperties);
 			rabbitTemplate.send("", "image_queue", message);
 
-//		byte[] body = Files.readAllBytes(Paths.get("d:/002_books", "mysql.pdf"));
+//		byte[] body = Files.readAllBytes(Paths.get("/Users/zhangchao/Desktop/temp", "test1.pdf"));
 //		MessageProperties messageProperties = new MessageProperties();
 //		messageProperties.setContentType("application/pdf");
 //		Message message = new Message(body, messageProperties);

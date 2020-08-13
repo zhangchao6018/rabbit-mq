@@ -178,8 +178,15 @@ public class RabbitMQConfig {
 
 		//multiJavaObjMessageConverter(container);
 
-		//1.4 ext convert
+		//1.4 ext convert 万能转换器
 
+		ContentTypeDelegatingMessageConverter(container);
+
+		return container;
+
+	}
+
+	private void ContentTypeDelegatingMessageConverter(SimpleMessageListenerContainer container) {
 		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
 		adapter.setDefaultListenerMethod("consumeMessage");
 
@@ -203,12 +210,8 @@ public class RabbitMQConfig {
 		PDFMessageConverter pdfConverter = new PDFMessageConverter();
 		convert.addDelegate("application/pdf", pdfConverter);
 
-
 		adapter.setMessageConverter(convert);
 		container.setMessageListener(adapter);
-
-		return container;
-
 	}
 
 	private void multiJavaObjMessageConverter(SimpleMessageListenerContainer container) {
