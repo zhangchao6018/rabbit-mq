@@ -1,16 +1,29 @@
 package com.zc.spring;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Queue;
-import org.springframework.amqp.core.TopicExchange;
+import com.rabbitmq.client.Channel;
+import com.zc.spring.adapter.MessageDelegate;
+import com.zc.spring.convert.ImageMessageConverter;
+import com.zc.spring.convert.PDFMessageConverter;
+import com.zc.spring.convert.TextMessageConverter;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.ChannelAwareMessageListener;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
+import org.springframework.amqp.rabbit.listener.adapter.MessageListenerAdapter;
+import org.springframework.amqp.support.ConsumerTagStrategy;
+import org.springframework.amqp.support.converter.ContentTypeDelegatingMessageConverter;
+import org.springframework.amqp.support.converter.DefaultJackson2JavaTypeMapper;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Configuration
 @ComponentScan({"com.zc.spring.*"})
@@ -106,4 +119,163 @@ public class RabbitMQConfig {
 		return rabbitTemplate;
 	}
 
+
+
+
+	@Bean
+	public SimpleMessageListenerContainer messageContainer(ConnectionFactory connectionFactory) {
+
+		SimpleMessageListenerContainer container = new SimpleMessageListenerContainer(connectionFactory);
+		container.setQueues(queue001(), queue002(), queue003(), queue_image(), queue_pdf());
+		//并发使用者数
+		container.setConcurrentConsumers(1);
+		//最大并发使用者
+		container.setMaxConcurrentConsumers(5);
+
+		container.setDefaultRequeueRejected(false);
+		//自动签收(实际生产推荐手动签收)
+		container.setAcknowledgeMode(AcknowledgeMode.AUTO);
+
+		container.setExposeListenerChannel(true);
+		//自定义标签id
+		container.setConsumerTagStrategy(new ConsumerTagStrategy() {
+			@Override
+			public String createConsumerTag(String queue) {
+				return queue + "_" + UUID.randomUUID().toString();
+			}
+		});
+
+
+		/**
+		 * 0. 基础版 用SimpleMessageListenerContainer 简单消息监听容器  监听消息
+		 */
+		//simpleMessageListenerContainer(container);
+
+		/**
+		 * 用自定义消息监听适配器监听消息
+		 *
+		 * 1 适配器方式. 默认是有自己的方法名字的：handleMessage
+		 // 可以自己指定一个方法的名字如: consumeMessage
+		 // 也可以添加一个转换器: 从字节数组转换为String
+		 */
+
+		//messageListenerAdapter1(container);
+
+		/**
+		 * 2 适配器方式: 我们的队列名称 和 方法名称 也可以进行一一的匹配
+		 */
+
+		//messageListenerAdapter2(container);
+
+		//---------------------------------------以下是 MessageConverter----------------------------------------
+		// 1.1 支持json格式的转换器
+		//jsonMessageConverter(container);
+
+		// 1.2 DefaultJackson2JavaTypeMapper & Jackson2JsonMessageConverter 支持java对象转换
+		//jsonSupportJavaObjMessageConverter(container);
+
+		//1.3 DefaultJackson2JavaTypeMapper & Jackson2JsonMessageConverter 支持java对象多映射转换
+
+		//multiJavaObjMessageConverter(container);
+
+		//1.4 ext convert
+
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+		adapter.setDefaultListenerMethod("consumeMessage");
+
+		//全局的转换器:
+		ContentTypeDelegatingMessageConverter convert = new ContentTypeDelegatingMessageConverter();
+
+		TextMessageConverter textConvert = new TextMessageConverter();
+		convert.addDelegate("text", textConvert);
+		convert.addDelegate("html/text", textConvert);
+		convert.addDelegate("xml/text", textConvert);
+		convert.addDelegate("text/plain", textConvert);
+
+		Jackson2JsonMessageConverter jsonConvert = new Jackson2JsonMessageConverter();
+		convert.addDelegate("json", jsonConvert);
+		convert.addDelegate("application/json", jsonConvert);
+
+		ImageMessageConverter imageConverter = new ImageMessageConverter();
+		convert.addDelegate("image/png", imageConverter);
+		convert.addDelegate("image", imageConverter);
+
+		PDFMessageConverter pdfConverter = new PDFMessageConverter();
+		convert.addDelegate("application/pdf", pdfConverter);
+
+
+		adapter.setMessageConverter(convert);
+		container.setMessageListener(adapter);
+
+		return container;
+
+	}
+
+	private void multiJavaObjMessageConverter(SimpleMessageListenerContainer container) {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+		adapter.setDefaultListenerMethod("consumeMessage");
+		Jackson2JsonMessageConverter jackson2JsonMessageConverter = new Jackson2JsonMessageConverter();
+		DefaultJackson2JavaTypeMapper javaTypeMapper = new DefaultJackson2JavaTypeMapper();
+
+		//支持灵活的<key,java类型>指定
+		Map<String, Class<?>> idClassMapping = new HashMap<String, Class<?>>();
+		idClassMapping.put("order", com.zc.spring.entity.Order.class);
+		idClassMapping.put("packaged", com.zc.spring.entity.Packaged.class);
+
+		javaTypeMapper.setIdClassMapping(idClassMapping);
+
+		jackson2JsonMessageConverter.setJavaTypeMapper(javaTypeMapper);
+		adapter.setMessageConverter(jackson2JsonMessageConverter);
+		container.setMessageListener(adapter);
+	}
+
+	private void jsonSupportJavaObjMessageConverter(SimpleMessageListenerContainer container) {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+		adapter.setDefaultListenerMethod("consumeMessage");
+
+		Jackson2JsonMessageConverter jackson2JsonMessageConverter = new Jackson2JsonMessageConverter();
+
+		DefaultJackson2JavaTypeMapper javaTypeMapper = new DefaultJackson2JavaTypeMapper();
+		jackson2JsonMessageConverter.setJavaTypeMapper(javaTypeMapper);
+
+		adapter.setMessageConverter(jackson2JsonMessageConverter);
+		container.setMessageListener(adapter);
+	}
+
+	private void jsonMessageConverter(SimpleMessageListenerContainer container) {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+		adapter.setDefaultListenerMethod("consumeMessage");
+
+		Jackson2JsonMessageConverter jackson2JsonMessageConverter = new Jackson2JsonMessageConverter();
+		adapter.setMessageConverter(jackson2JsonMessageConverter);
+
+		container.setMessageListener(adapter);
+	}
+
+	private void simpleMessageListenerContainer(SimpleMessageListenerContainer container) {
+		container.setMessageListener(new ChannelAwareMessageListener() {
+		@Override
+		public void onMessage(Message message, Channel channel) throws Exception {
+		String msg = new String(message.getBody());
+		System.err.println("----------消费者: " + msg);
+		}
+		});
+	}
+
+	private void messageListenerAdapter1(SimpleMessageListenerContainer container) {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+		adapter.setDefaultListenerMethod("consumeMessage");
+		adapter.setMessageConverter(new TextMessageConverter());
+		container.setMessageListener(adapter);
+	}
+
+	private void messageListenerAdapter2(SimpleMessageListenerContainer container) {
+		MessageListenerAdapter adapter = new MessageListenerAdapter(new MessageDelegate());
+		adapter.setMessageConverter(new TextMessageConverter());
+		Map<String, String> queueOrTagToMethodName = new HashMap<>();
+		queueOrTagToMethodName.put("queue001", "method1");
+		queueOrTagToMethodName.put("queue002", "method2");
+		adapter.setQueueOrTagToMethodName(queueOrTagToMethodName);
+		container.setMessageListener(adapter);
+	}
 }
